@@ -1,0 +1,13 @@
+# .gitignore content
+__pycache__/
+*.pyc
+.DS_Store
+.ipynb_checkpoints/
+.env
+venv/
+
+# Assignment brief (not for distribution)
+Regression - Self-practice Assignment.pdf
+
+# Saved models and results (recreate with python main.py)
+outputs/
