@@ -1,0 +1,107 @@
+# Data
+file_path: ./data/student_records.csv
+target_column: final_test
+id_column: student_id
+
+# Outputs: each training run is saved to its own timestamped folder inside output_dir
+output_dir: ./outputs
+
+# Data cleaning
+# Missing values in these columns are recovered from the same student's duplicate row
+recover_columns:
+  - final_test
+  - attendance_rate
+# Rows still missing these after duplicate recovery are dropped
+# (attendance_rate is imputed with the training set median in the preprocessor instead)
+dropna_columns:
+  - final_test
+# Ages 5 and 6 are data entry errors with the leading "1" left out
+age_corrections:
+  5: 15
+  6: 16
+columns_to_drop:
+  - index
+  - student_id
+  - gender
+  - n_male
+  - n_female
+  - age
+  - sleep_time
+  - wake_time
+  - mode_of_transport
+  - bag_color
+binary_mappings:
+  direct_admission:
+    "Yes": 1
+    "No": 0
+  tuition:
+    "Yes": 1
+    "No": 0
+  learning_style:
+    Visual: 1
+    Auditory: 0
+
+# Feature engineering: set to false to leave a feature out of the model
+engineered_features:
+  class_size: true
+  sleep_hours: true
+
+# Preprocessing
+numerical_features:
+  - number_of_siblings
+  - hours_per_week
+  - attendance_rate
+  - class_size
+  - sleep_hours
+nominal_features:
+  - CCA
+passthrough_features:
+  - direct_admission
+  - learning_style
+  - tuition
+
+# Data splitting: 80% train, 10% validation, 10% test
+val_test_size: 0.2
+val_size: 0.5
+random_state: 42
+
+# Cross-validation and tuning
+cv: 5
+scoring: r2
+
+# Models
+models:
+  linear_regression:
+    type: LinearRegression
+    search: none
+  ridge:
+    type: Ridge
+    search: grid
+    params:
+      alpha: [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]
+  lasso:
+    type: Lasso
+    init_params:
+      max_iter: 10000
+    search: grid
+    params:
+      alpha: [0.0001, 0.001, 0.01, 0.1, 1, 10, 100, 1000]
+  random_forest:
+    type: RandomForestRegressor
+    search: random
+    n_iter: 15
+    params:
+      n_estimators: {dist: randint, low: 100, high: 400}
+      max_depth: [null, 10, 15, 20]
+      min_samples_leaf: {dist: randint, low: 1, high: 10}
+      max_features: [0.5, 0.7, 1.0]
+  gradient_boosting:
+    type: HistGradientBoostingRegressor
+    search: random
+    n_iter: 20
+    params:
+      learning_rate: {dist: loguniform, low: 0.02, high: 0.3}
+      max_iter: {dist: randint, low: 100, high: 500}
+      max_depth: [null, 3, 5, 8]
+      min_samples_leaf: {dist: randint, low: 10, high: 50}
+      l2_regularization: {dist: uniform, low: 0, high: 1}
